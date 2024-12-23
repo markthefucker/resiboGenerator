@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Receipt Generator</title>
+  <style>
+    body {
+      background-color: #d8bfd8; /* Light purple background */
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #ff69b4;
+    }
+    form label {
+      display: block;
+      margin: 10px 0 5px;
+    }
+    form input, form button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ffb6c1;
+      border-radius: 5px;
+    }
+    form button {
+      background-color: #ff69b4;
+      color: white;
+      cursor: pointer;
+    }
+    form button:hover {
+      background-color: #ff1493;
+    }
+    .receipt {
+      margin-top: 20px;
+      padding: 10px;
+      background: #fff0f5;
+      border: 1px solid #ffb6c1;
+      border-radius: 5px;
+    }
+    .social-links {
+      margin-top: 20px;
+      text-align: center;
+      display: none;
+    }
+    .social-links a {
+      margin: 0 10px;
+      text-decoration: none;
+      color: #ff69b4;
+      font-weight: bold;
+    }
+    .social-links a:hover {
+      color: #ff1493;
+    }
+    .share-button {
+      display: none;
+      margin-top: 20px;
+      background-color: #ff69b4;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 200px; /* Set a fixed width for centering */
+      margin-left: auto;
+      margin-right: auto; /* Center the button horizontally */
+    }
+    .share-button:hover {
+      background-color: #ff1493;
+    }
+    .share-link {
+      margin-top: 20px;
+      text-align: center;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Receipt Generator</h1>
+    <form id="receiptForm">
+      <label for="username">Enter Username:</label>
+      <input type="text" id="username" required />
+
+      <label for="item">Enter Item Code:</label>
+      <input type="text" id="item" required />
+
+      <label for="quantity">Enter Quantity:</label>
+      <input type="number" id="quantity" min="1" value="1" required />
+
+      <label for="price">Enter Price Item:</label>
+      <input type="number" id="price" step="0.01" required />
+
+      <button type="button" onclick="addItem()">Add Item</button>
+    </form>
+
+    <div id="receiptOutput" class="receipt"></div>
+
+    <!-- Follow me on social links and share receipt section -->
+    <div id="socialLinksSection" class="social-links">
+      <p>Follow me on:</p>
+      <a href="https://www.tiktok.com/@mappygolucky?lang=en" target="_blank">TikTok</a>
+      <a href="https://www.facebook.com/mappygolucky" target="_blank">Facebook</a>
+      <a href="https://www.instagram.com/mappygolucky/?hl=en" target="_blank">Instagram</a>
+    </div>
+
+    <div id="shareLinkSection" class="share-link">
+      <p>Share Receipt:</p>
+      <a id="shareLink" target="_blank"></a>
+    </div>
+
+    <!-- Share Receipt Button will be shown after receipt generation -->
+    <button id="shareButton" class="share-button" onclick="shareReceipt()">Share Receipt</button>
+  </div>
+
+  <script>
+    let items = [];
+
+    function addItem() {
+      const item = document.getElementById('item').value;
+      const quantity = parseInt(document.getElementById('quantity').value);
+      const price = parseFloat(document.getElementById('price').value);
+      const totalPrice = quantity * price;
+
+      if (item && !isNaN(price) && quantity > 0) {
+        items.push({ item, quantity, price, totalPrice });
+        document.getElementById('item').value = '';
+        document.getElementById('quantity').value = '0';
+        document.getElementById('price').value = '';
+        alert('Item added!');
+      } else {
+        alert('Please enter valid item, quantity, and price.');
+      }
+
+      generateReceipt(); // Update receipt after adding an item
+    }
+
+    function generateReceipt() {
+      const username = document.getElementById('username').value;
+      if (!username || items.length === 0) {
+        return;
+      }
+
+      let total = 0;
+      let receipt = `<h2>Receipt</h2><p>Customer: ${username}</p><ul>`;
+      items.forEach(item => {
+        receipt += `<li>${item.quantity} x ${item.item} @ ₱${item.price.toFixed(2)} each = ₱${item.totalPrice.toFixed(2)}</li>`;
+        total += item.totalPrice;
+      });
+      receipt += `</ul><p>Total: ₱${total.toFixed(2)}</p>`;
+      receipt += `<p>Thank you for purchasing, ${username}!</p>`;
+      document.getElementById('receiptOutput').innerHTML = receipt;
+
+      // Show social media links and share receipt button after generating the receipt
+      document.getElementById('socialLinksSection').style.display = 'block';
+      document.getElementById('shareLinkSection').style.display = 'block';
+      document.getElementById('shareButton').style.display = 'block'; // Show the Share Receipt button
+    }
+
+    function shareReceipt() {
+      const username = document.getElementById('username').value;
+      if (!username || items.length === 0) {
+        alert('Please add items before sharing!');
+        return;
+      }
+
+      const receiptContent = document.getElementById('receiptOutput').innerHTML;
+      const receiptId = 'receipt_' + new Date().getTime(); // Create a unique receipt ID
+
+      // Save the receipt content in localStorage (temporary storage)
+      localStorage.setItem(receiptId, receiptContent);
+
+      // Create a URL with the unique receipt ID to share
+      const receiptUrl = window.location.origin + '/view-receipt.html?id=' + receiptId;
+
+      // Show the share link
+      const shareLinkElement = document.getElementById('shareLink');
+      shareLinkElement.href = receiptUrl;
+      shareLinkElement.innerText = 'Click here to view the receipt!';
+    }
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
